@@ -1,0 +1,28 @@
+;;; VLisp project file [V2.0] Estate saved to:[D:/C3.CAD/03.Code/10.Estates] at:[3/30/18] 
+(VLISP-PROJECT-LIST
+  :NAME
+  Estate
+  :OWN-LIST
+  ("D:/C3.CAD/03.Code/10.Estates/Source/L01_图层控制"
+    "D:/C3.CAD/03.Code/10.Estates/Source/T01_计算面积"
+    "D:/C3.CAD/03.Code/10.Estates/Source/T01_标注面积"
+    "D:/C3.CAD/03.Code/10.Estates/Source/T01_文本排列"
+    "D:/C3.CAD/03.Code/10.Estates/Source/T02_文本排序"
+    "D:/C3.CAD/03.Code/10.Estates/lib/Block"
+    "D:/C3.CAD/03.Code/10.Estates/lib/Layer"
+    "D:/C3.CAD/03.Code/10.Estates/lib/lzDCL"
+    "D:/C3.CAD/03.Code/10.Estates/lib/lzUtils"
+    "D:/C3.CAD/03.Code/10.Estates/lib/scroll-bar"
+    "D:/C3.CAD/03.Code/10.Estates/lib/ToolBox"
+    "D:/C3.CAD/03.Code/10.Estates/lib/utils-list"
+   )
+  :FAS-DIRECTORY
+  "D:\\C3.CAD\\03.Code\\10.Estates"
+  :TMP-DIRECTORY
+  "D:\\C3.CAD\\03.Code\\10.Estates\\tmp"
+  :PROJECT-KEYS
+  (:BUILD (:standard) :MERGED T :SAFE-MODE T :MSGLEVEL 1)
+  :CONTEXT-ID
+  :AUTOLISP
+)
+;;; EOF
