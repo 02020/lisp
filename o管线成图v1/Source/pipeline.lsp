@@ -32,14 +32,19 @@ __ 4.根据 多段线,按一定顺序标示出各点
 
 
 (defun c:d ()
-(setq menu (vlex-MenuGroups))
+  (setq	menu	      (vlex-MenuGroups)
+	currmenugroup (vla-item menu)
+  )
+  (vlax-for menu (vla-get-menus currmenugroup)
+    (princ menu)
+  )
+
   (princ menu)
   (princ)
 
-
-  
-;(FetchPointIntoDwg)
+	  ;(FetchPointIntoDwg)
 )
+
 
 
 (defun SetDataMdb ()
@@ -53,19 +58,332 @@ __ 4.根据 多段线,按一定顺序标示出各点
 
 
 
-(defun c:2()
-    (SetDataMdb)
-  )
 
+
+
+(defun c:2 ()
+  ;;(SetDataMdb)
+  (setq	conn	 (e-ConnectToDB)
+	fields	 configLine
+	strSql ""
+	strField ""
+	tableName "线表"
+  )
+  (foreach field fields
+    (setq strField (strcat strField "[" tableName "].[" (cadr field) "],"))
+  )
+  (setq
+    strSql (strcat "SELECT " strField "[sx],[sy],[X坐标] as [ex], [Y坐标] as [ey] from ")
+    strSql (strcat strSql
+		   "(SELECT "
+		   strField
+		   " [X坐标] as [sx], [Y坐标] as [sy] "
+	   )
+
+    strSql (strcat strSql
+		   "FROM [线表] left JOIN [点表] ON ([点表].[外业点号] = [线表].[起点点号])) "
+		   "as [线表] left JOIN [点表] ON ([点表].[外业点号] = [线表].[终点点号])"
+	   )
+    
+
+    data   (ADO_DoSQL conn strSql)
+  )
+;(princ strsql)
+  (princ data)
+  (princ)
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(defun c:1 ()
+  (FetchPointIntoDwg)
+)
+
+
+
+
+
+
+
+
+
+
+
+(defun e-ConnectToDB (/ dbfile conn connstring)
+  (setq dbfile (e-regget "dataMdb"))
+  (setq connstring (strcat "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" dbfile))
+;;;  (setq conn (vlax-create-object "ADODB.Connection")) ;引用ADO控件
+;;;  (vlax-invoke-method conn "open" connstring "" "" -1) ;打开数据库连接
+  (ADO_ConnectToDB connstring "" "")
+)
 
 ;| 1.导入坐标点数据 |;
 (defun FetchPointIntoDwg (/ bmList layerNot layerName schedule block filePath)
   (setvar "osmode" 0)
   (setq blockSize "0.5")
-  (setq dbfile (e-regget "dataMdb"))
-  (Setq conn (vlax-create-object "ADODB.Connection")) ;引用ADO控件
-  (setq connstring (strcat "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" dbfile)) ;设置数据库连接字符串
-  (vlax-invoke-method conn "open" connstring "" "" -1) ;打开数据库连接
+(setq conn (e-ConnectToDB))
 
   (setq dcl_id (load_dialog "scroll-bar"))
   (new_dialog "scrolling" dcl_id)
@@ -107,7 +425,7 @@ __ 4.根据 多段线,按一定顺序标示出各点
   (princ)
 )
 
-;;插入管线块
+;;插入管线-块
 (defun InserPipelineBlock (item)
   (setq	x	  (nth 0 item)
 	y	  (nth 1 item)

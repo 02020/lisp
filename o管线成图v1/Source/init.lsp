@@ -75,6 +75,35 @@ configLayerList
 
 
 	)
+configLine (list '(1 "管线性质")
+'(2 "埋设方式")
+'(3 "起点点号")
+'(4 "终点点号")
+'(5 "起点埋深")
+'(6 "终点埋深")
+'(7 "断面尺寸")
+'(8 "材质")
+'(9 "保温材质")
+'(10 "保护材质")
+'(11 "压力")
+'(12 "介质")
+'(13 "电压")
+'(14 "总孔数")
+'(15 "已用孔数")
+'(16 "电缆根数")
+'(17 "权属单位")
+'(18 "所含管类")
+'(19 "所在道路")
+'(20 "管段位置")
+'(21 "备注")
+)
+
+
+
+
+
+
+
   configArrowColor    155	  ;箭头颜色
   configPointCircle    1	  ;点圆半径
   configLayerTemp    "080_0"
@@ -88,12 +117,12 @@ configLayerList
 
 
 
-
-
-(setq ADOLISP_ADODLLPath
-       (findfile "c:\\program files\\common files\\system\\ado\\msado15.dll")
-)
-
-(vlax-import-type-library
-  :tlb-filename	ADOLISP_ADODLLPath :methods-prefix "ADOMethod-"	:properties-prefix "ADOProperty-" :constants-prefix
-  "ADOConstant-")
+;;;
+;;;
+;;;(setq ADOLISP_ADODLLPath
+;;;       (findfile "c:\\program files\\common files\\system\\ado\\msado15.dll")
+;;;)
+;;;
+;;;(vlax-import-type-library
+;;;  :tlb-filename	ADOLISP_ADODLLPath :methods-prefix "ADOMethod-"	:properties-prefix "ADOProperty-" :constants-prefix
+;;;  "ADOConstant-")

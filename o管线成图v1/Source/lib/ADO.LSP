@@ -562,3 +562,221 @@
 ))
 fldsLst
 )
+
+
+
+
+;; | ----------------------------------------------------------------------------
+;; | ADO_ConnectToDB
+;; | ----------------------------------------------------------------------------
+;; | Function : Connects to the specified database defined by 'ConnectionString'
+;; | Arguments: 'ConnectString' - Connect String to connect to database
+;; |                              Either the name of a .UDL file,
+;; |                              including the ".UDL", or an
+;; |                              OLEDB connection string.
+;; |                              If this argument is the name of
+;; |                              a UDL file without a full path,
+;; |                              it is searched for in the
+;; |                              current directory, the
+;; |                              AutoCAD search path, and the
+;; |                              AutoCAD Data Source Location.
+;; |            'UserName'      - The user name to use when connecting.
+;; |                              May be a null string if the user name is
+;; |                              specified in the first argument or the
+;; |                              first argument is a UDL file name.
+;; |            'PassWord'      - The password to use when connecting.
+;; |                              May be a null string if the password is
+;; |                              supplied in the first argument or the
+;; |                              first argument is a UDL file name.
+;; | Action   : Returns the connection object, if successfully connected
+;; | Updated  : March 13, 2007
+;; |
+;; | Return value:
+;; |  If anything fails, NIL.  Call (ADO_ErrorPrinter) to
+;; |  print error messages to the command line.
+;; |  Otherwise, an ADO Connection Object.
+;; | ---------------------------------------------------------------------------
+
+
+(defun ADO_ConnectToDB	(ConnectString UserName Password / IsUDL
+                            FullUDLFileName ConnectionObject TempObject
+                            ReturnValue ConnectionPropertiesObject
+                            ConnectionParsingPropertyObject
+                        )
+  ;; Assume no error
+  (setq ADOLISP_ErrorList        nil
+        ADOLISP_LastSQLStatement nil
+  )
+
+  ;; If the connect string is a UDL file name ...
+  (if (= ".UDL"
+         (strcase
+           (substr ConnectString (- (strlen ConnectString) 3))
+         )
+      )
+    (progn
+      ;; Set a flag that it's a UDL file
+      (setq IsUDL T)
+      ;; Try to find it
+      (cond
+        ((setq FullUDLFileName (findfile ConnectString)))
+        ;; Didn't find it in the current directory or
+        ;; the AutoCAD search path, try the AutoCAD
+        ;; Data Source location
+        ((setq FullUDLFileName
+                (findfile (strcat (vlax-get-property
+                                    (vlax-get-property
+                                      (vlax-get-property
+                                        (vlax-get-acad-object)
+                                        "Preferences"
+                                      )
+                                      "Files"
+                                    )
+                                    "WorkspacePath"
+                                  )
+                                  "\\"
+                                  ConnectString
+                          )
+                )
+         )
+        )
+        ;; Didn't find it, store an error message
+        (t
+         (setq ADOLISP_ErrorList
+                (list (list (cons "ADOLISP connection error"
+                                  (strcat "Can't find \""
+                                          ConnectString
+                                          "\""
+                                  )
+                            )
+                      )
+                )
+         )
+        )
+      )
+    )
+  )
+
+  ;; If the first argument is a UDL file name... ...
+  (if IsUDL
+    ;; If we found it ...
+    (if FullUDLFileName
+      (progn
+        ;; Create an ADO connection object
+        (setq ConnectionObject
+               (vlax-create-object
+                 "ADODB.Connection"
+               )
+        )
+        ;; Try to open the connection.  If there is an error
+        ;; ...
+        (if (vl-catch-all-error-p
+              (setq TempObject
+                     (vl-catch-all-apply
+                       'vlax-invoke-method
+                       (list ConnectionObject
+                             "Open"
+                             (strcat "File Name=" FullUDLFileName)
+                             UserName
+                             Password
+                             ADOConstant-adConnectUnspecified
+                       )
+                     )
+              )
+            )
+          (progn
+            ;; Save the error information
+            (setq ADOLISP_ErrorList
+                   (ADO_ErrorProcessor TempObject ConnectionObject)
+            )
+            ;; Release the connection object
+            (vlax-release-object ConnectionObject)
+          )
+          ;; It worked, store the connection object in our
+          ;; return value
+          (setq ReturnValue ConnectionObject)
+        )
+      )
+    )
+    ;; The connect string is not a UDL file name.
+    (progn
+      ;; Create an ADO connection object
+      (setq ConnectionObject
+             (vlax-create-object "ADODB.Connection")
+      )
+      ;; Try to open the connection.  If there is an error ...
+      (if (vl-catch-all-error-p
+            (setq TempObject
+                   (vl-catch-all-apply
+                     'vlax-invoke-method
+                     (list
+                       ConnectionObject "Open" ConnectString UserName
+                       Password ADOConstant-adConnectUnspecified
+                      )
+                   )
+            )
+          )
+        (progn
+          ;; Save the error information
+          (setq ADOLISP_ErrorList
+                 (ADO_ErrorProcessor TempObject ConnectionObject)
+          )
+          ;; Release the connection object
+          (vlax-release-object ConnectionObject)
+        )
+        ;; It worked, store the connection object in our
+        ;; return value
+        (setq ReturnValue ConnectionObject)
+      )
+    )
+  )
+  ;; If we made a connection ...
+  (if ReturnValue
+    (progn
+      ;; If we want to set ODBC Parsing to true ...
+      (if (not ADOLISP_DoNotForceJetODBCParsing)
+        (progn
+          ;; Get the properties collection
+          (setq ConnectionPropertiesObject
+                 (vlax-get-property
+                   ReturnValue
+                   "Properties"
+                 )
+          )
+          ;; If the properties collection has a "Jet OLEDB:ODBC
+          ;; Parsing" item ...
+          (if (not (vl-catch-all-error-p
+                     (setq ConnectionParsingPropertyObject
+                            (vl-catch-all-apply
+                              'vlax-get-property
+                              (list
+                                ConnectionPropertiesObject
+                                "ITEM"
+                                "Jet OLEDB:ODBC Parsing"
+                              )
+                            )
+                     )
+                   )
+              )
+            ;; Set the "Jet OLEDB:ODBC Parsing" item to
+            ;; "true" so the Jet engine accepts double-quotes
+            ;; around delimited identifiers
+            (vlax-put-property
+              ConnectionParsingPropertyObject
+              "VALUE"
+              :vlax-true
+            )
+          )
+        )
+      )
+      ;; And release our objects
+      (if (= 'VLA-OBJECT (type ConnectionParsingPropertyObject))
+        (vlax-release-object ConnectionParsingPropertyObject)
+      )
+      (if (= 'VLA-OBJECT (type ConnectionPropertiesObject))
+        (vlax-release-object ConnectionPropertiesObject)
+      )
+    )
+  )
+  ReturnValue
+)
