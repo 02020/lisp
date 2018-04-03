@@ -71,7 +71,7 @@ __ 4.根据 多段线,按一定顺序标示出各点
   (setq dcl_id (load_dialog "scroll-bar"))
   (new_dialog "scrolling" dcl_id)
 
-  (setq	sql	  (BulidSql configPoint "点表")
+  (setq	sql	  (BulidSelectSql configPoint "点表")
 	data	  (ADO_DoSQL conn sql)
 	n	  -1
 	i	  0
@@ -208,6 +208,7 @@ __ 4.根据 多段线,按一定顺序标示出各点
 
 ;| 修改属性值mdb |;
 (defun UpdatePointData ()
+  (princ (strcat "\no__o " "修改属性值"))
   (setq dbfile "D:\\C3.CAD\\03.Code\\o管线成图v1\\Data\\成果1\\丽日花园点线库.mdb")
   (Setq conn (vlax-create-object "ADODB.Connection")) ;引用ADO控件
   (setq connstring (strcat "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" dbfile)) ;设置数据库连接字符串
@@ -217,13 +218,15 @@ __ 4.根据 多段线,按一定顺序标示出各点
   (while (setq en (entsel "\no__o 请选选择 箭头"))
     (setq x	 (GetXDataMap (car en) configPoint)
 	  x	 (dos_proplist "节点属性" "修改属性" x)
+	  code   (cdr (assoc "外业点号" x))
 	  strSql (BulidUpdateSql conn tableName x "外业点号")
     )
-    (if	(ADO_DoSQL conn strSql)
-
+    (if (vl-symbol-value   	(ADO_DoSQL conn strSql))
+	(princ (strcat "\no__o " code " 修改成功"))
     )
   )
   (setvar "pickbox" 10)
+    (ADO_DisconnectFromDB conn)
   (princ)
 )
 

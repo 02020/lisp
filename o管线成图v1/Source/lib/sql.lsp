@@ -1,10 +1,10 @@
 
 ;;构建更新语句  dataList '(("Title" . "Floorplan") ("Project" . "Project A"))) 
 (defun BulidUpdateSql (conn tableName dataList key / strSql)
-  (setq fieldList (ADO_GetFieldNames conn tableName)
-fieldList     (mapcar '(lambda (x)  (cons (car x) (cadr x))) fieldList)
+  (setq	fieldList (ADO_GetFieldNames conn tableName)
+	fieldList (mapcar '(lambda (x) (cons (car x) (cadr x))) fieldList)
 
-	)
+  )
   (setq strSql "")
   (setq val (cdr (assoc key dataList)))
   (foreach item	dataList
@@ -40,63 +40,7 @@ fieldList     (mapcar '(lambda (x)  (cons (car x) (cadr x))) fieldList)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(defun BulidSql	(fields tableName /)
+(defun BulidSelectSql	(fields tableName /)
   (setq sql "")
   (foreach field fields
     (setq sql (strcat sql "[" (cadr field) "],"))
