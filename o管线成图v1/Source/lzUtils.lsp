@@ -60,8 +60,16 @@ ______________________________________________________________________|;
 
 
 
+(defun e-regset (name value)
+  (setq RegStr "HKEY_CURRENT_USER\\Software\\080CAD\\Pipeline")
+  ;(dos_regsetstr "HKEY_CURRENT_USER" RegStr name value)
+  (vl-registry-write  RegStr name value)
+)
 
-
+(defun e-regget (name)
+  (setq RegStr "HKEY_CURRENT_USER\\Software\\080CAD\\Pipeline")
+  (vl-registry-read  RegStr name)
+)
 
 
 ;;;--------------------------------------------------------------------;
@@ -188,7 +196,7 @@ __
 
 
 	  ;文件选择对话
-(defun GetFiles	(/)
+(defun e-GetFiles	(title ext  /)
   (if (/= (vl-registry-read "HKEY_CLASSES_ROOT\\Licenses\\4D553650-6ABE-11cf-8ADB-00AA00C00905")
 	  "gfjmrfkfifkmkfffrlmmgmhmnlulkmfmqkqj"
       )
@@ -199,7 +207,7 @@ __
   )
   (if (setq x (Vlax-Get-Or-Create-Object "MSComDlg.CommonDialog"))
     (progn (vlax-put-property x "DialogTitle" "请选择坐标数据")
-	   (vlax-put-property x "Filter" "DWG Files|*.txt|All Files|*.*")
+	   (vlax-put-property x "Filter" (strcat ext  "|All Files|*.*"))
 	   (vlax-put-property x "MaxFileSize" 10000)
 	  ;        (vlax-put-property x "Flags" 512)
 	   (vlax-put-property x "Flags" 1574404)

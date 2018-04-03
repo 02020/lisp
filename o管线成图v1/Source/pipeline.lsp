@@ -1,29 +1,12 @@
-;; 最后修改时间 2018年2月10日
-
-;| 工具箱命令:GGT
-__ 1.根据点绘制矢量箭头
-__ 2.根据矢量箭头提取高程点数据,绘制 Oh 块
-__ 3.补全高程点,输入高差
-__ 4.根据 箭头,按一定顺序标示出各点
-__ 5.合并同一点的Oh块
-
-__ 备注:井盖点 lstpt 集合为二维点，高程点为三维，需要转换
-
-
-__ 2.根据 矢量箭头 绘制 多段线
-
-__ 4.根据 多段线,按一定顺序标示出各点
-|;
-
-
+;; 最后修改时间 2018年4月10日
 
 
  ;| 工具箱命令:GGT
-__ 0.系统初始化
-__ 1.导入坐标点数据
-__ 2.设置当前操作的工作层
-__ 3.输入点属性 ---- 点情况，多余点，重复点
-__ 4.（出图）根据节点性质插入各个点的块
+__ 0.设置数据库
+__ 1.导入坐标点数据（mdb）
+
+__ 3.检查点属性 ---- 点情况，多余点，重复点
+__ 4.（出图）整理块方向
 __ 5.
 
 __ 备注:井盖点 lstpt 集合为二维点，高程点为三维，需要转换
@@ -34,36 +17,52 @@ __ 2.根据 矢量箭头 绘制 多段线
 __ 4.根据 多段线,按一定顺序标示出各点
 |;
 
-;;块的三次递进 Elevation->h(高程)->h(id)->attr
 
-(defun Init (/ currentLayer)
-  ;; (#MakeLayers configLayerList) ;加载图层
-  (CreateBlockId)
-  (CreateBlockElevation)
-  (CreateBlockAttr configPoint)
-)
+
+(defun c:vfcd()
+ ; (vla-removefrommenubar "BMF工具")
+  (e-CreateMenu
+    '("BMF工具" (
+	
+		 ("系统图层切换...". "XSXTTC")
+		)
+      )
+    )
+  (PRINC))
 
 
 (defun c:d ()
-(FetchPointIntoDwg)
+(setq menu (vlex-MenuGroups))
+  (princ menu)
+  (princ)
+
+
+  
+;(FetchPointIntoDwg)
 )
 
 
+(defun SetDataMdb ()
+  (setq dbfile (e-GetFiles "选择mdb" "mdb|*.mdb*"))
+  (if (= dbfile "")
+    (princ "\no__o 程序退出")
+    (e-regset "dataMdb" dbfile)
+  )
+  (princ)
+)
+
+
+
+(defun c:2()
+    (SetDataMdb)
+  )
 
 
 ;| 1.导入坐标点数据 |;
 (defun FetchPointIntoDwg (/ bmList layerNot layerName schedule block filePath)
   (setvar "osmode" 0)
   (setq blockSize "0.5")
-;;;  (setq dbfile (GetFiles))
-;;;  
-;;;
-;;;  (if (null dbfile)
-;;;    (exit)
-;;;  )
-
- 
- (setq dbfile "D:\\C3.CAD\\03.Code\\o管线成图v1\\Data\\成果1\\丽日花园点线库.mdb")
+  (setq dbfile (e-regget "dataMdb"))
   (Setq conn (vlax-create-object "ADODB.Connection")) ;引用ADO控件
   (setq connstring (strcat "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" dbfile)) ;设置数据库连接字符串
   (vlax-invoke-method conn "open" connstring "" "" -1) ;打开数据库连接
