@@ -17,6 +17,7 @@ __ 4.根据 多段线,按一定顺序标示出各点
 
 
 
+
  ;| 工具箱命令:GGT
 __ 0.系统初始化
 __ 1.导入坐标点数据
@@ -43,69 +44,58 @@ __ 4.根据 多段线,按一定顺序标示出各点
 )
 
 
-(defun c:d()
-  (MakeArrows)
-  )
+(defun c:d ()
+(FetchPointIntoDwg)
+)
 
 
- ;| 1.导入坐标点数据 |;
+
+
+;| 1.导入坐标点数据 |;
 (defun FetchPointIntoDwg (/ bmList layerNot layerName schedule block filePath)
   (setvar "osmode" 0)
   (setq blockSize "0.5")
-  (setq filePath (GetFiles))
- ;(setq filePath "D:\\C3.CAD\\03.Code\\o管线成图v1\\Data\\成果1\\丽日花苑原始坐标数据.txt")
+;;;  (setq dbfile (GetFiles))
+;;;  
+;;;
+;;;  (if (null dbfile)
+;;;    (exit)
+;;;  )
 
-	  ;(vl-cmdf "UNDO" "BE")
-    (if (null filePath) (exit))
+ 
+ (setq dbfile "D:\\C3.CAD\\03.Code\\o管线成图v1\\Data\\成果1\\丽日花园点线库.mdb")
+  (Setq conn (vlax-create-object "ADODB.Connection")) ;引用ADO控件
+  (setq connstring (strcat "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" dbfile)) ;设置数据库连接字符串
+  (vlax-invoke-method conn "open" connstring "" "" -1) ;打开数据库连接
+
   (setq dcl_id (load_dialog "scroll-bar"))
   (new_dialog "scrolling" dcl_id)
 
-  (setq lst (ReadTxt filePath)
-	n 0
-	num (length lst)
-	)
+  (setq	sql	  (BulidSql configPoint "点表")
+	data	  (ADO_DoSQL conn sql)
+	n	  -1
+	i	  0
+	num	  (length data)
+	layerNot  nil
+	blocksNot nil
+  )
 
-  (setq layerNot nil)
-
-  (foreach line	lst
+ ;排除首行
+  (while (setq item (nth (setq i (1+ i)) data))
     ;;进度条
     (setq schedule (* 2.0 (/ n 2.0 num)))
     (scroll-bar schedule)
-
-    (setq k (#sparser line ",")
-	  h (nth 4 k) ;高程
-	  n (1+ n)
-	  x (nth 3 k)
-	  y (nth 2 k)
+    (setq x    (nth 0 item)
+	  y    (nth 1 item)
+	  h    (nth 5 item)
+	  cat  (nth 2 item)
+	  code (nth 3 item)
+	  node (nth 4 item) ;节点性质
     )
 
     ;;插入块
-    (if	(and (/= x "")(/= y "")  h)
-      (progn
-	(setq pt     (list (distof (cadddr k) 2) (distof (caddr k) 2))
-	      bmList (StrDivEnInt (nth 1 k))
-	)
-	(setq block (InsertBlockAttr pt blockSize "0-Elevation" (list (nth 1 k) h)))
-
-	(cond
-	  ((= (length bmList) 3)
-	   (setq dm (cadr bmList))
-	  )
-	  ((= (length bmList) 2)
-	   (if (wcmatch (car bmList) "#")
-	     (setq dm (cadr bmList))
-	     (setq dm (car bmList))
-	   )
-	  )
-	)
-	(setq layerName (GetLayerFormNode dm))
-	(if layerName
-	  (vla-put-layer block layerName)
-	  (if (not (member dm layerNot))
-	    (setq layerNot (cons dm layerNot))
-	  )
-	)
-      )
+    (if	(and (not (null x)) (not (null y)) (not (null h)))
+	(InserPipelineBlock item)
     )
   )
   (setq layStr (apply 'strcat (mapcar '(lambda (x) (strcat x ",")) layerNot)))
@@ -114,32 +104,161 @@ __ 4.根据 多段线,按一定顺序标示出各点
   ;;卸载进度条
   (done_dialog)
   (unload_dialog dcl_id)
-(princ)
+  (ADO_DisconnectFromDB conn)
+  (princ)
 )
 
-(defun GetLayerFormNode9 (bm)
-  (setq color 1)
-  (setq layerName (assoc bm configNodeSortList))
-  (if (null layerName)
-    nil
+;;插入管线块
+(defun InserPipelineBlock (item)
+  (setq	x	  (nth 0 item)
+	y	  (nth 1 item)
+	h	  (nth 5 item)
+	cat	  (nth 2 item)
+	code	  (nth 3 item)
+	node	  (nth 4 item) ;节点性质
+	pt	  (list (distof x 2) (distof y 2))
+	layerName (GetLayerFormNode cat "POINT")
+  )
+
+  (if (/= (TBLSEARCH "BLOCK" node) nil)
     (progn
-      (setq layerName  (cadr layerName)
-	    layerColor (assoc layerName configLayerList)
+      (setq block (vla-insertblock mSpace (vlax-3d-point pt) node blockSize blockSize blockSize 0))
+      (SetPipelineBlockXDatas block configPoint item)
+      (if layerName
+	(vla-put-layer block layerName)
+	(if (not (member cat layerNot))
+	  (setq layerNot (cons cat layerNot))
+	)
       )
-      (if (not (null layerColor))
-	(setq color (cadr layerColor))
+    )
+    (progn
+      (if (not (member node blocksNot))
+	(setq blocksNot (cons node blocksNot))
       )
-      (if (not (tblsearch "layer" layerName))
-	(vla-put-Color (vla-add LayerSel layerName) color)
-      )
-      layerName
     )
   )
 )
 
+;;增加块的xData属性值
+(defun SetPipelineBlockXDatas(o fields item)
+  (defun XData (o key value)
+    (ex:PutXData o (list (cons 1001 key) (cons 1000 value)))
+  )
+  (foreach field fields
+   (setq value (nth (- (car field) 1) item ))
+   (XData o (cadr field) value)
+  )
+)
+
+;;获取xData属性值
+(defun GetXDatas (en keyList dem)
+  (setq	o	(vlax-ename->vla-object en)
+	keyList	(mapcar '(lambda (x) (cadr x)) keyList)
+  )
+  (if (assoc -3 (entget en keyList))
+    (apply
+      'strcat
+      (mapcar '(lambda (x) (strcat (GetXData o x) dem)) keyList)
+    )
+    nil
+  )
+)
+
+;;获取xData属性值
+(defun GetXDataMap (en keyList)
+  (setq	o	(vlax-ename->vla-object en)
+	keyList	(mapcar '(lambda (x) (cadr x)) keyList)
+  )
+  (if (assoc -3 (entget en keyList))
+
+      (mapcar '(lambda (x) (list x (GetXData o x) )) keyList)
+    
+    nil
+  )
+)
+
+
+
+;;
+(defun GetXData	(vlaObj key)
+  (cdr (assoc 1000 (ex:GetXData vlaObj key)))
+)
+
+
+
+
+
+
+
+;| 显示管径数据 |;
+(defun c:s ()
+  (setq fontSize "0.5")
+  (setvar "pickbox" 20)
+  (while (setq en (entsel "\no__o 请选选择 箭头"))
+    (setq text (GetXDatas (car en) configPoint ","))
+    (if	text
+      (princ (strcat "\no__o " text))
+      (princ "\no__o 该箭头未设置数据")
+    )
+  )
+  (setvar "pickbox" 10)
+)
+
+
+
+;| 修改属性值mdb |;
+(defun UpdatePointData ()
+  (setq dbfile "D:\\C3.CAD\\03.Code\\o管线成图v1\\Data\\成果1\\丽日花园点线库.mdb")
+  (Setq conn (vlax-create-object "ADODB.Connection")) ;引用ADO控件
+  (setq connstring (strcat "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" dbfile)) ;设置数据库连接字符串
+  (vlax-invoke-method conn "open" connstring "" "" -1) ;打开数据库连接
+  (setq tableName "点表")
+  (setvar "pickbox" 20)
+  (while (setq en (entsel "\no__o 请选选择 箭头"))
+    (setq x	 (GetXDataMap (car en) configPoint)
+	  x	 (dos_proplist "节点属性" "修改属性" x)
+	  strSql (BulidUpdateSql conn tableName x "外业点号")
+    )
+    (if	(ADO_DoSQL conn strSql)
+
+    )
+  )
+  (setvar "pickbox" 10)
+  (princ)
+)
+
+
+
+
+
+(defun c:ss()
+(UpdatePointData)
+  )
+
+
+
+;;;
+;;;
+;;;
+;;;(setq x 
+;;;
+;;;(("Title" . "Floorplan") ("Project" . "Project A")) 
+;;;
+;;; 
+;;;
+;;;Command: 
+;;;
+;;;(("Title" . "Floorplan") ("Project" . "Project B")) 
+;;;
+;;; 
+;;;
+;;;
+
+
+
 ;;根据节点获取图层
-(defun GetLayerFormNode	(bm / layer layerName layerColor)
-  (defun *error* (msg)(princ (strcat "\no__o GetLayerFormNode:" msg)))
+(defun GetLayerFormNode	(bm lx / layer layerName layerColor)
+ ;; (defun *error* (msg)(princ (strcat "\no__o GetLayerFormNode:" msg)))
   ;configLayerList configNodeList
   (setq 
     LayerSel (vla-get-Layers AcadDocument)
@@ -148,7 +267,7 @@ __ 4.根据 多段线,按一定顺序标示出各点
   (if (null layer)
     (progn nil)
     (progn
-      (setq layerName  (cadr layer)
+      (setq layerName  (strcat (cadr layer) lx)
 	    layerColor (caddr layer)
       )
       (if (not (tblsearch "layer" layerName))
@@ -199,40 +318,6 @@ __ 4.根据 多段线,按一定顺序标示出各点
     )
 )
 
-
-;|
-
-	(if (not (null layerName))
-	  (progn
-	  (setq layerName (getstring (strcat "\no__o 请输入编码 " bm " 代表图层的名字 "))	    )
-	    (vla-add LayerSel layerName)
-	    (setq layerList (cons bm layerList)
-	    )
-	  )
-	)
-
- |;
-
-
-
-;; 1.设置当前图层
-;; currentLayer 全局变量
-(defun SetCurrentLayer ()
-  (setq currentLayer (getstring "\no__o 请输入当前要操作的工作层："))
-  (setvar "CLAYER" currentLayer)
-)
-
-
- ;|
-
-    (VL-CMDF "INSERT" "0attr" pt "1" "1" "" (nth 1 k) h )
-    (repeat (- (length configPoint) 1)
-      (vl-cmdf "")
-    )
-    (VL-CMDF "change" (entlast) "" "p" "la" layer "")
-
-
-|;
 
 
 

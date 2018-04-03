@@ -56,9 +56,24 @@ configLayerList
 	 '("TX" "TX" 3 "共通" "通信")  '("TV" "TX" 3 "共通" "通信")
 	)
   configPoint
-   (list '(2 "地面高程")    '(3 "井深")	       '(4 "井脖高")	  '(1 "节点性质")    '(5 "井室规格")
-	 '(6 "井盖材质")    '(7 "井盖规格")    '(8 "附属物规格")  '(9 "管点材质")    '(10 "所在道路")
-	 '(11 "备注")
+   (list '(1 "X坐标")
+'(2 "Y坐标")
+'(3 "管线性质")
+'(4 "外业点号")
+'(5 "节点性质")
+'(6 "地面高程")
+'(7 "井深")
+'(8 "井脖高")
+'(9 "井室规格")
+'(10 "井盖材质")
+'(11 "井盖规格")
+'(12 "附属物规格")
+'(13 "管点材质")
+'(14 "所在道路")
+'(15 "所含管类")
+'(16 "备注")
+
+
 	)
   configArrowColor    155	  ;箭头颜色
   configPointCircle    1	  ;点圆半径
@@ -70,3 +85,15 @@ configLayerList
 
 (princ)
 
+
+
+
+
+
+(setq ADOLISP_ADODLLPath
+       (findfile "c:\\program files\\common files\\system\\ado\\msado15.dll")
+)
+
+(vlax-import-type-library
+  :tlb-filename	ADOLISP_ADODLLPath :methods-prefix "ADOMethod-"	:properties-prefix "ADOProperty-" :constants-prefix
+  "ADOConstant-")

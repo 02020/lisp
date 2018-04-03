@@ -49,6 +49,31 @@
 
 
 
+;;获取两直线的交点坐标
+(defun e-GetInters (OBJ1 OBJ2 / PS LST)
+    (setq PS (vla-intersectwith OBJ1 OBJ2 3)
+	  PS (vl-catch-all-apply
+	       'vlax-safearray->list
+	       (list (vlax-variant-value PS))
+	     )
+    )
+    (if	(and PS (not (vl-catch-all-error-p PS)))
+      (while (setq LST (cons (list (car PS) (cadr PS)) LST)
+		   PS  (cdddr PS)
+	     )
+      )
+    )
+    LST
+  )
+
+
+;;获取中点
+(defun e-GetMid (pt1 pt2 / x)
+  (mapcar '(lambda (x) (/ x 2)) (mapcar '+ pt1 pt2))
+)
+
+
+
 
 
 

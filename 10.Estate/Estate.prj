@@ -1,28 +1,33 @@
-;;; VLisp project file [V2.0] Estate saved to:[D:/C3.CAD/03.Code/10.Estates] at:[3/30/18] 
+;;; VLisp project file [V2.0] Estate saved to:[D:/C3.CAD/03.Code/10.Estate] at:[3/31/18] 
 (VLISP-PROJECT-LIST
-  :NAME
+  :name
   Estate
-  :OWN-LIST
-  ("D:/C3.CAD/03.Code/10.Estates/Source/L01_图层控制"
-    "D:/C3.CAD/03.Code/10.Estates/Source/T01_计算面积"
-    "D:/C3.CAD/03.Code/10.Estates/Source/T01_标注面积"
-    "D:/C3.CAD/03.Code/10.Estates/Source/T01_文本排列"
-    "D:/C3.CAD/03.Code/10.Estates/Source/T02_文本排序"
-    "D:/C3.CAD/03.Code/10.Estates/lib/Block"
-    "D:/C3.CAD/03.Code/10.Estates/lib/Layer"
-    "D:/C3.CAD/03.Code/10.Estates/lib/lzDCL"
-    "D:/C3.CAD/03.Code/10.Estates/lib/lzUtils"
-    "D:/C3.CAD/03.Code/10.Estates/lib/scroll-bar"
-    "D:/C3.CAD/03.Code/10.Estates/lib/ToolBox"
-    "D:/C3.CAD/03.Code/10.Estates/lib/utils-list"
+  :own-list
+  ("D:/C3.CAD/03.Code/10.Estate/Source/L01_图层控制"
+    "D:/C3.CAD/03.Code/10.Estate/Source/M01_菜单栏"
+    "D:/C3.CAD/03.Code/10.Estate/Source/M01_工具栏"
+    "D:/C3.CAD/03.Code/10.Estate/Source/T01_计算面积"
+    "D:/C3.CAD/03.Code/10.Estate/Source/T01_标注面积"
+    "D:/C3.CAD/03.Code/10.Estate/Source/T01_文本排列"
+    "D:/C3.CAD/03.Code/10.Estate/Source/T02_文本排序"
+    "D:/C3.CAD/03.Code/10.Estate/lib/Block"
+    "D:/C3.CAD/03.Code/10.Estate/lib/cui"
+    "D:/C3.CAD/03.Code/10.Estate/lib/Layer"
+    "D:/C3.CAD/03.Code/10.Estate/lib/lzDCL"
+    "D:/C3.CAD/03.Code/10.Estate/lib/lzUtils"
+    "D:/C3.CAD/03.Code/10.Estate/lib/Pline"
+    "D:/C3.CAD/03.Code/10.Estate/lib/scroll-bar"
+    "D:/C3.CAD/03.Code/10.Estate/lib/ToolBox"
+    "D:/C3.CAD/03.Code/10.Estate/lib/utils-list"
+    "D:/C3.CAD/03.Code/10.Estate/lib/vlex-vlisp"
    )
-  :FAS-DIRECTORY
-  "D:\\C3.CAD\\03.Code\\10.Estates"
-  :TMP-DIRECTORY
-  "D:\\C3.CAD\\03.Code\\10.Estates\\tmp"
-  :PROJECT-KEYS
+  :fas-directory
+  "D:/C3.CAD/03.Code/10.Estate"
+  :tmp-directory
+  "D:\\C3.CAD\\03.Code\\10.Estate\\tmp"
+  :project-keys
   (:BUILD (:standard) :MERGED T :SAFE-MODE T :MSGLEVEL 1)
-  :CONTEXT-ID
+  :context-id
   :AUTOLISP
 )
 ;;; EOF
